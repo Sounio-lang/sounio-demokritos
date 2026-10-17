@@ -1,0 +1,9 @@
+# species.csv — one row per species (max 8). init = initial amount, init_sigma = its 1-sigma (0 if exact).
+# unit is informative (printed), the engine is unit-agnostic: keep every species in ONE unit system.
+name,init,init_sigma,unit,note
+H2aq,0.0117,0.0,mol/L,Henry charge 7.8e-4 mol/L/atm x 15 atm (public)
+CO2aq,0.05,0.0,mol/L,closed batch; no resupply
+CH4aq,0.0,0.0,mol/L,
+Calcite,1.0,0.0,mol/L,solid as pseudo-concentration
+Ca,1.0e-3,0.0,mol/L,
+HCO3,5.0e-4,0.0,mol/L,

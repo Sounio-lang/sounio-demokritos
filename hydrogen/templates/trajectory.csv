@@ -1,0 +1,3 @@
+# trajectory.csv — what tools/parity expects from COMSOL / PHREEQC exports: first column time, then species named as in species.csv.
+t,H2aq,CO2aq,CH4aq,Calcite,Ca,HCO3
+0,0.0117,0.05,0,1.0,0.001,0.0005

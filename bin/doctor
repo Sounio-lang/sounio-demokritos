@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# bin/doctor — is this machine ready to run the funnel?
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SOUNIO_ROOT="${SOUNIO_ROOT:-$HERE/../sounio}"
+ok(){ echo "  [ok]   $*"; }; bad(){ echo "  [MISS] $*"; FAIL=1; }
+FAIL=0
+echo "sounio-demokritos doctor"
+echo "  arch: $(uname -m) $(uname -s)"
+[ "$(uname -m)" = "x86_64" ] && [ "$(uname -s)" = "Linux" ] && ok "Linux x86-64" || bad "souc native binaries are Linux x86-64 static ELF; this is $(uname -s) $(uname -m)"
+[ -x "$SOUNIO_ROOT/bin/souc" ] && ok "souc at $SOUNIO_ROOT/bin/souc ($("$SOUNIO_ROOT/bin/souc" --version 2>/dev/null | head -1))" || bad "souc not found; clone Sounio-lang/sounio next to this repo or export SOUNIO_ROOT"
+[ -d "$SOUNIO_ROOT/stdlib/chemistry" ] && ok "stdlib/chemistry present" || bad "stdlib/chemistry missing"
+command -v g++ >/dev/null && ok "g++ $(g++ -dumpversion)" || bad "g++ missing (tools are C++23)"
+for t in csv2sio phreeqc2csv parity; do [ -x "$HERE/tools/$t" ] && ok "tools/$t built" || bad "tools/$t not built: run make"; done
+if [ -x "$SOUNIO_ROOT/bin/souc" ]; then
+  export SOUNIO_STDLIB_PATH="$SOUNIO_ROOT/stdlib"
+  if ( cd "$SOUNIO_ROOT" && timeout 120 ./bin/souc run examples/hello.sio 2>/dev/null | grep -q "Hello" ); then ok "hello runs on the default engine (Madaros)"; else bad "hello did not run on the default engine"; fi
+  if ( cd "$SOUNIO_ROOT" && SOUNIO_SOUC_ENGINE=lean_single timeout 120 ./bin/souc run examples/hello.sio 2>/dev/null | grep -q "Hello" ); then ok "hello runs on lean_single"; else bad "lean_single engine did not run hello"; fi
+fi
+[ $FAIL -eq 0 ] && echo "ready." || echo "fix the [MISS] lines above."
+exit $FAIL

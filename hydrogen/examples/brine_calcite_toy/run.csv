@@ -1,0 +1,7 @@
+key,value
+title,brine_calcite_toy — pipeline check with ILLUSTRATIVE constants (not the paper's)
+temperature_C,25
+dt,0.05
+steps,600
+snapshots,12
+note,replace every k in reactions.csv with your calibrated values and sources

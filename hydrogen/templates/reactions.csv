@@ -1,0 +1,7 @@
+# reactions.csv — mass-action steps (max 8). equation: "A + 2 B -> C"; every name must exist in species.csv.
+# k is the rate constant in units consistent with species and dt; k_sigma its 1-sigma. source = where k came from.
+id,equation,k,k_sigma,unit,source
+R0,H2aq + CO2aq -> CH4aq,0.0,0.0,L/mol/yr,SLOT: methanation rate law — not supplied by any public source (Ghaedi 2025 S2)
+R1,Calcite -> Ca + HCO3,1.0e-3,1.0e-4,1/yr,SLOT: PWP acid channel; fill from your calibrated run
+R2,Calcite + CO2aq -> Ca + 2 HCO3,1.0e-3,1.0e-4,L/mol/yr,SLOT: PWP CO2 channel
+R3,Ca + HCO3 -> Calcite,1.0e-2,1.0e-3,L/mol/yr,SLOT: precipitation closure

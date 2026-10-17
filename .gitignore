@@ -1,0 +1,8 @@
+runs/
+hydrogen/intake/
+hpc/intake/
+ai/intake/
+generated/*.sio
+tools/csv2sio
+tools/phreeqc2csv
+tools/parity

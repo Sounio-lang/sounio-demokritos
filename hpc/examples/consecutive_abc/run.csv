@@ -1,0 +1,6 @@
+key,value
+title,consecutive_abc — A ⇌ B → C, pipeline check with ILLUSTRATIVE constants
+dt,0.01
+steps,1000
+snapshots,10
+note,10 h at dt = 0.01 h

@@ -1,0 +1,4 @@
+name,init,init_sigma,unit,note
+A,1.0,0.02,mol/L,measured charge ± 2 %
+B,0.0,0.0,mol/L,
+C,0.0,0.0,mol/L,

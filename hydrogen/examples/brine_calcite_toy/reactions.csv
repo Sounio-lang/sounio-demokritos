@@ -1,0 +1,5 @@
+id,equation,k,k_sigma,unit,source
+R0,H2aq + CO2aq -> CH4aq,2.0e-2,1.0e-2,L/mol/yr,ILLUSTRATIVE pseudo-sink (Bo 2021 anchor); real rate law awaited
+R1,Calcite -> Ca + HCO3,1.0e-3,1.0e-4,1/yr,ILLUSTRATIVE PWP acid channel
+R2,Calcite + CO2aq -> Ca + 2 HCO3,1.0e-3,1.0e-4,L/mol/yr,ILLUSTRATIVE PWP CO2 channel
+R3,Ca + HCO3 -> Calcite,1.0e-2,1.0e-3,L/mol/yr,ILLUSTRATIVE closure

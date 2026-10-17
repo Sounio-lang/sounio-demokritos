@@ -1,0 +1,8 @@
+# run.csv — key,value. dt and steps set the RK4 grid; snapshots = how many TRAJ lines to print.
+key,value
+title,H2-brine-calcite (TEMPLATE — every k is a slot)
+temperature_C,25
+dt,0.05
+steps,600
+snapshots,12
+note,30 years at dt = 0.05 yr; values ILLUSTRATIVE until the slots are filled

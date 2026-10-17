@@ -1,0 +1,5 @@
+# Consecutive first-order chain with a reversible first step; pipeline check with ROUND constants.
+id,equation,k,k_sigma,unit,source
+R1,A -> B,0.5,0.05,1/h,ILLUSTRATIVE
+R2,B -> A,0.1,0.02,1/h,ILLUSTRATIVE
+R3,B -> C,0.2,0.02,1/h,ILLUSTRATIVE

@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# bin/run <file.sio> [--engine madaros|lean_single] [--tag name] [--timeout seconds]
+# Runs a Sounio file and writes runs/<timestamp>_<tag>/{stdout.txt,stderr.txt,receipt.json}.
+set -u
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SOUNIO_ROOT="${SOUNIO_ROOT:-$HERE/../sounio}"
+ENGINE=""; TAG=""; TIMEOUT=900; FILE=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --engine) ENGINE="$2"; shift 2;;
+    --tag) TAG="$2"; shift 2;;
+    --timeout) TIMEOUT="$2"; shift 2;;
+    *) FILE="$1"; shift;;
+  esac
+done
+[ -n "$FILE" ] || { echo "usage: bin/run <file.sio> [--engine madaros|lean_single] [--tag name]"; exit 2; }
+[ -f "$FILE" ] || { echo "no such file: $FILE"; exit 2; }
+[ -x "$SOUNIO_ROOT/bin/souc" ] || { echo "souc not found at $SOUNIO_ROOT/bin/souc (set SOUNIO_ROOT)"; exit 2; }
+ABS="$(realpath "$FILE")"
+TAG="${TAG:-$(basename "$FILE" .sio)}"
+STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+OUT="$HERE/runs/${STAMP}_${TAG}"
+mkdir -p "$OUT"
+export SOUNIO_STDLIB_PATH="$SOUNIO_ROOT/stdlib"
+[ -n "$ENGINE" ] && export SOUNIO_SOUC_ENGINE="$ENGINE"
+SHA="$(sha256sum "$FILE" | cut -d' ' -f1)"
+SOUC_SHA="$(sha256sum "$SOUNIO_ROOT/bin/souc" | cut -d' ' -f1)"
+VERSION="$("$SOUNIO_ROOT/bin/souc" --version 2>/dev/null | head -1)"
+HEAD="$(git -C "$SOUNIO_ROOT" rev-parse HEAD 2>/dev/null || echo unknown)"
+cp "$FILE" "$OUT/source.sio"
+START=$(date +%s.%N)
+( cd "$SOUNIO_ROOT" && timeout "$TIMEOUT" ./bin/souc run "$ABS" ) >"$OUT/stdout.txt" 2>"$OUT/stderr.txt"
+CODE=$?
+END=$(date +%s.%N)
+DUR=$(awk "BEGIN{printf \"%.2f\", $END-$START}")
+# strip compiler chatter into a clean program output
+grep -v -E '^(imported_compile|lower_array|Type check|Loaded |Resolve |Main file|Merged IR|Written to|Compilation successful|   Output:|Madaros v|the bare highland|Horizon |native_v2_compile|warning\[E-SRB|science-boundary|run_check_mode|private_fn_identity|NATIVE_REFUSAL)' "$OUT/stdout.txt" > "$OUT/output.txt"
+if grep -q '^TRAJ,' "$OUT/stdout.txt"; then
+  grep '^TRAJ,' "$OUT/stdout.txt" | sed 's/^TRAJ,//' > "$OUT/trajectory.csv"
+  grep -v '^TRAJ,' "$OUT/output.txt" > "$OUT/output.tmp" && mv "$OUT/output.tmp" "$OUT/output.txt"
+  echo "  trajectory: $OUT/trajectory.csv" >> "$OUT/output.txt"
+fi
+cat > "$OUT/receipt.json" <<EOF
+{
+  "file": "$ABS",
+  "file_sha256": "$SHA",
+  "tag": "$TAG",
+  "engine": "${ENGINE:-default}",
+  "souc": "$SOUNIO_ROOT/bin/souc",
+  "souc_sha256": "$SOUC_SHA",
+  "souc_version": "$VERSION",
+  "sounio_head": "$HEAD",
+  "started_utc": "$STAMP",
+  "duration_s": $DUR,
+  "exit_code": $CODE,
+  "command": "SOUNIO_STDLIB_PATH=$SOUNIO_STDLIB_PATH ${ENGINE:+SOUNIO_SOUC_ENGINE=$ENGINE }$SOUNIO_ROOT/bin/souc run $ABS"
+}
+EOF
+echo "== $TAG  exit=$CODE  ${DUR}s  -> $OUT"
+cat "$OUT/output.txt"
+[ $CODE -ne 0 ] && { echo "-- stderr (tail):"; tail -20 "$OUT/stderr.txt"; }
+exit $CODE
