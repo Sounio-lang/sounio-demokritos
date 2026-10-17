@@ -1,0 +1,40 @@
+// llm/probe_matmul3.sio — same matmul with raw pointer reads (read_f64/write_f64), pointers hoisted,
+// i-row base and B column walked with a stride, so the inner loop is two loads, one fma, two adds.
+use tensor::types::*
+use tensor::ops::*
+
+fn matmul_ptr(pa: *mut f64, pb: *mut f64, pc: *mut f64, n: i64) with Mut, Panic, Div {
+    var i: i64 = 0
+    while i < n {
+        var j: i64 = 0
+        while j < n {
+            var acc = 0.0
+            var k: i64 = 0
+            var ia = i * n
+            var ib = j
+            while k < n {
+                acc = acc + read_f64(pa, ia) * read_f64(pb, ib)
+                ia = ia + 1
+                ib = ib + n
+                k = k + 1
+            }
+            write_f64(pc, i * n + j, acc)
+            j = j + 1
+        }
+        i = i + 1
+    }
+}
+
+fn main() -> i32 with Alloc, Mut, Panic, Div, IO {
+    let n: usize = 512 as usize
+    var a = tensor_full(shape2(n, n), 0.001)
+    var b = tensor_full(shape2(n, n), 2.0)
+    var c = tensor_zeros(shape2(n, n))
+    var r = 0
+    while r < 4 { matmul_ptr(a.data, b.data, c.data, 512 as i64); r = r + 1 }
+    let v = tensor_get(&c, 0 as usize)
+    if v > 1.023 { if v < 1.025 { println("c[0] = 1.024 ok") } }
+    println("PROBE_MATMUL3_OK 4 x 512^3")
+    tensor_free(&! a); tensor_free(&! b); tensor_free(&! c)
+    0
+}

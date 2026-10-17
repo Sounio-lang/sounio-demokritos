@@ -1,0 +1,22 @@
+// llm/probe_matmul.sio — scalar f64 matmul throughput of stdlib tensor_matmul on the default engine.
+// 1024 x 1024 x 1024 = 2.147 GFLOP per call. Time it from bin/run's receipt (duration_s), 3 calls.
+use tensor::types::*
+use tensor::ops::*
+
+fn main() -> i32 with Alloc, Mut, Panic, Div, IO {
+    let n: usize = 1024 as usize
+    var a = tensor_full(shape2(n, n), 0.001)
+    var b = tensor_full(shape2(n, n), 2.0)
+    var k = 0
+    var last = 0.0
+    while k < 3 {
+        var c = tensor_matmul(&a, &b)
+        last = tensor_get(&c, 0 as usize)
+        tensor_free(&! c)
+        k = k + 1
+    }
+    if last > 2.04 { if last < 2.05 { println("c[0] = 2.048 ok") } }
+    println("PROBE_MATMUL_OK 3 x 1024^3")
+    tensor_free(&! a); tensor_free(&! b)
+    0
+}

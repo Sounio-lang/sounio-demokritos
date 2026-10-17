@@ -1,0 +1,27 @@
+// llm/probe_alloc.sio — can the tensor heap hold an LLM-sized buffer on the default engine?
+// Allocates a [rows x 1024] f64 tensor, touches first/middle/last, sums a stride, frees.
+// rows = 262144 -> 2 GiB; 524288 -> 4 GiB.
+use tensor::types::*
+use tensor::ops::*
+
+fn probe(rows: usize) -> f64 with Alloc, Mut, Panic, Div, IO {
+    var t = tensor_zeros(shape2(rows, 1024 as usize))
+    let n = shape_numel(t.shape)
+    tensor_set(&! t, 0 as usize, 1.0)
+    tensor_set(&! t, n / 2, 2.0)
+    tensor_set(&! t, n - 1, 3.0)
+    var acc = 0.0
+    var i: usize = 0
+    while i < n { acc = acc + tensor_get(&t, i); i = i + (65536 as usize) }
+    let s = tensor_get(&t, 0 as usize) + tensor_get(&t, n / 2) + tensor_get(&t, n - 1)
+    tensor_free(&! t)
+    s
+}
+
+fn main() -> i32 with Alloc, Mut, Panic, Div, IO {
+    println("PROBE 256 MiB"); if probe(32768 as usize) == 6.0 { println("  ok") } else { println("  BAD") }
+    println("PROBE 2 GiB");   if probe(262144 as usize) == 6.0 { println("  ok") } else { println("  BAD") }
+    println("PROBE 4 GiB");   if probe(524288 as usize) == 6.0 { println("  ok") } else { println("  BAD") }
+    println("PROBE_ALLOC_OK")
+    0
+}

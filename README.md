@@ -58,6 +58,7 @@ tools/          csv2sio, phreeqc2csv, parity (C++23, `make`)
 hydrogen/       templates, examples, intake/ (your data, gitignored)
 hpc/            same funnel for any kinetic / ODE network
 ai/             ontology and knowledge-graph intake (EL+ closure)
+llm/            LLM.md: running an open-weights model in Sounio, measured probes
 generated/      .sio files written by csv2sio (regenerate, do not edit)
 runs/           receipts (gitignored)
 ```

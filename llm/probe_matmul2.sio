@@ -1,0 +1,36 @@
+// llm/probe_matmul2.sio — hand-written f64 matmul over tensor storage, no aggregates in the loop.
+// n = 512: 2*512^3 = 268 MFLOP per call, 4 calls. Throughput from the receipt's duration_s.
+use tensor::types::*
+use tensor::ops::*
+
+fn matmul_raw(a: &Tensor, b: &Tensor, c: &!Tensor, n: usize) with Mut, Panic, Div {
+    var i: usize = 0
+    while i < n {
+        var j: usize = 0
+        while j < n {
+            var acc = 0.0
+            var k: usize = 0
+            while k < n {
+                acc = acc + tensor_get(a, i * n + k) * tensor_get(b, k * n + j)
+                k = k + (1 as usize)
+            }
+            tensor_set(c, i * n + j, acc)
+            j = j + (1 as usize)
+        }
+        i = i + (1 as usize)
+    }
+}
+
+fn main() -> i32 with Alloc, Mut, Panic, Div, IO {
+    let n: usize = 512 as usize
+    var a = tensor_full(shape2(n, n), 0.001)
+    var b = tensor_full(shape2(n, n), 2.0)
+    var c = tensor_zeros(shape2(n, n))
+    var r = 0
+    while r < 4 { matmul_raw(&a, &b, &! c, n); r = r + 1 }
+    let v = tensor_get(&c, 0 as usize)
+    if v > 1.023 { if v < 1.025 { println("c[0] = 1.024 ok") } }
+    println("PROBE_MATMUL2_OK 4 x 512^3")
+    tensor_free(&! a); tensor_free(&! b); tensor_free(&! c)
+    0
+}
